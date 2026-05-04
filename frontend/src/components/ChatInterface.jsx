@@ -52,12 +52,16 @@ export function ChatInterface() {
       {/* Header */}
       <header className="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-gray-800 bg-gray-950/80 backdrop-blur-sm">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-poliba-lightblue to-poliba-blue flex items-center justify-center">
-            <span className="text-white font-bold text-xs">PB</span>
-          </div>
+          <img
+            src="/poliba-logo.png"
+            alt="Politecnico di Bari"
+            className="h-9 w-auto object-contain bg-white rounded-md p-1"
+            onError={(e) => { e.currentTarget.style.display = 'none' }}
+          />
+          <div className="hidden sm:block w-px h-8 bg-gray-700" />
           <div>
             <h1 className="text-sm font-semibold text-gray-100 leading-tight">AI Assistant</h1>
-            <p className="text-xs text-gray-500 leading-tight">Politecnico di Bari</p>
+            <p className="text-xs text-gray-500 leading-tight">Project Work · Teleperformance</p>
           </div>
         </div>
 
