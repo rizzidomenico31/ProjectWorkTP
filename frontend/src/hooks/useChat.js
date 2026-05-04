@@ -1,7 +1,9 @@
 import { useState, useCallback, useRef } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 
-const N8N_WEBHOOK_URL = import.meta.env.VITE_N8N_WEBHOOK_URL || ''
+// Backend base URL (es. https://my-backend.up.railway.app). Vuoto = same origin.
+const API_BASE = import.meta.env.VITE_API_URL || ''
+const CHAT_ENDPOINT = `${API_BASE}/api/chat`
 
 function getSessionId() {
   let sessionId = sessionStorage.getItem('chat_session_id')
@@ -18,14 +20,15 @@ export function useChat() {
   const [error, setError] = useState(null)
   const sessionId = useRef(getSessionId())
 
-  const sendMessage = useCallback(async (text) => {
-    if (!text.trim() || isLoading) return
+  const sendMessage = useCallback(async (text, file = null) => {
+    if ((!text?.trim() && !file) || isLoading) return
 
     const userMessage = {
       id: uuidv4(),
       role: 'user',
       content: text.trim(),
       timestamp: new Date(),
+      attachment: file ? { name: file.name, size: file.size, type: 'pdf' } : null,
     }
 
     setMessages((prev) => [...prev, userMessage])
@@ -33,32 +36,28 @@ export function useChat() {
     setError(null)
 
     try {
-      if (!N8N_WEBHOOK_URL) {
-        throw new Error('N8N_WEBHOOK_URL non configurato. Imposta la variabile VITE_N8N_WEBHOOK_URL.')
-      }
+      const formData = new FormData()
+      formData.append('chatInput', text.trim())
+      formData.append('sessionId', sessionId.current)
+      if (file) formData.append('pdf', file, file.name)
 
-      const response = await fetch(N8N_WEBHOOK_URL, {
+      const response = await fetch(CHAT_ENDPOINT, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chatInput: text.trim(),
-          sessionId: sessionId.current,
-        }),
+        body: formData,
       })
 
+      const data = await response.json().catch(() => ({}))
+
       if (!response.ok) {
-        throw new Error(`Errore dal server: ${response.status} ${response.statusText}`)
+        throw new Error(data?.error || `Errore dal server: ${response.status}`)
       }
 
-      const data = await response.json()
-
-      // n8n can return { output: "..." } or [{ output: "..." }] or { message: "..." }
       const content =
-        (Array.isArray(data) ? data[0]?.output : data?.output) ||
+        data?.output ||
         data?.message ||
         data?.text ||
-        data?.response ||
-        JSON.stringify(data)
+        (typeof data?.raw === 'string' ? data.raw : '') ||
+        'Nessuna risposta dall\'orchestratore.'
 
       const assistantMessage = {
         id: uuidv4(),

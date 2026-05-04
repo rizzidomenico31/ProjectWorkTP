@@ -1,12 +1,25 @@
 services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      - PORT=8080
+      - N8N_WEBHOOK_URL=${N8N_WEBHOOK_URL}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
+    expose:
+      - "8080"
+    restart: unless-stopped
+
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        VITE_N8N_WEBHOOK_URL: ${VITE_N8N_WEBHOOK_URL}
+        # In locale lasciamo vuoto: il frontend chiama /api che nginx proxy-a al backend.
+        VITE_API_URL: ${VITE_API_URL:-}
     ports:
-      - "80:80"
+      - "8080:80"
+    depends_on:
+      - backend
     restart: unless-stopped
-    environment:
-      - VITE_N8N_WEBHOOK_URL=${VITE_N8N_WEBHOOK_URL}
