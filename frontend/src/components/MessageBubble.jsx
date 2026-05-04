@@ -1,4 +1,4 @@
-import { AlertCircle, Bot, User } from './Icons.jsx'
+import { AlertCircle, Bot, User, FileText } from './Icons.jsx'
 
 function formatContent(text) {
   // Split on code blocks first
@@ -70,9 +70,22 @@ export function MessageBubble({ message }) {
         </div>
         <div className="flex-1 min-w-0 flex flex-col items-end">
           <div className="bg-poliba-blue rounded-2xl rounded-tr-sm px-4 py-3 max-w-[80%]">
-            <div className="message-content text-sm text-white leading-relaxed">
-              {formatContent(message.content)}
-            </div>
+            {message.attachment && (
+              <div className="flex items-center gap-2 mb-2 px-2 py-1.5 rounded-lg bg-white/10">
+                <FileText className="w-4 h-4 text-white/90 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs text-white/95 truncate">{message.attachment.name}</p>
+                  <p className="text-[10px] text-white/60">
+                    {(message.attachment.size / 1024 / 1024).toFixed(2)} MB · PDF
+                  </p>
+                </div>
+              </div>
+            )}
+            {message.content && (
+              <div className="message-content text-sm text-white leading-relaxed">
+                {formatContent(message.content)}
+              </div>
+            )}
           </div>
           <p className="text-gray-600 text-xs mt-1 mr-1">{time}</p>
         </div>
