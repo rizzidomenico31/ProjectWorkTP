@@ -7,8 +7,8 @@ services:
       - PORT=8080
       - N8N_WEBHOOK_URL=${N8N_WEBHOOK_URL}
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
-    expose:
-      - "8080"
+    ports:
+      - "8081:8080"
     restart: unless-stopped
 
   frontend:
@@ -16,8 +16,9 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        # In locale lasciamo vuoto: il frontend chiama /api che nginx proxy-a al backend.
-        VITE_API_URL: ${VITE_API_URL:-}
+        # In locale punta al backend esposto sulla porta 8081 dell'host.
+        # Su Railway usa VITE_API_URL=https://<backend>.up.railway.app
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8081}
     ports:
       - "8080:80"
     depends_on:
