@@ -10,9 +10,9 @@ RUN npm ci
 # Copy source and build
 COPY . .
 
-# VITE_N8N_WEBHOOK_URL must be set at build time (Railway build env var)
-ARG VITE_N8N_WEBHOOK_URL
-ENV VITE_N8N_WEBHOOK_URL=$VITE_N8N_WEBHOOK_URL
+# VITE_API_URL must be set at build time (URL pubblico del backend su Railway)
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
 
 RUN npm run build
 
