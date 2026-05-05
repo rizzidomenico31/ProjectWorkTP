@@ -52,6 +52,8 @@ export function useChat() {
         throw new Error(data?.error || `Errore dal server: ${response.status}`)
       }
 
+      console.log('Response data:', JSON.stringify(data))
+
       const content =
         data?.output ||
         data?.message ||
