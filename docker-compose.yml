@@ -1,4 +1,12 @@
 services:
+  mongodb:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    restart: unless-stopped
+
   backend:
     build:
       context: ./backend
@@ -7,8 +15,11 @@ services:
       - PORT=8080
       - N8N_WEBHOOK_URL=${N8N_WEBHOOK_URL}
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
+      - MONGODB_URI=${MONGODB_URI:-mongodb://mongodb:27017/chatdb}
     ports:
       - "8081:8080"
+    depends_on:
+      - mongodb
     restart: unless-stopped
 
   frontend:
@@ -24,3 +35,6 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+
+volumes:
+  mongo_data:
