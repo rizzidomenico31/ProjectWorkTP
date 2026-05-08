@@ -1,4 +1,5 @@
 import { AlertCircle, Bot, User, FileText } from './Icons.jsx'
+import MermaidDiagram from "./MermaidDiagram.jsx";
 
 function formatContent(text) {
   // Split on code blocks first
@@ -101,7 +102,10 @@ export function MessageBubble({ message }) {
       <div className="flex-1 min-w-0">
         <div className="bg-gray-800/80 border border-gray-700/50 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[80%]">
           <div className="message-content text-sm text-gray-100 leading-relaxed">
-            {formatContent(message.content)}
+              {message.contentType === 'text'
+                  ? formatContent(message.content)
+                  : <MermaidDiagram chart={message.content} />
+              }
           </div>
         </div>
         <p className="text-gray-600 text-xs mt-1 ml-1">{time}</p>

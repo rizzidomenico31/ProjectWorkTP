@@ -36,6 +36,7 @@ export function useChat(sessionId, onMessageSent) {
         id: uuidv4(),
         role: 'user',
         content: text.trim(),
+        contentType: 'text',
         timestamp: new Date(),
         attachment: file ? { name: file.name, size: file.size, type: 'pdf' } : null,
       }
@@ -61,17 +62,13 @@ export function useChat(sessionId, onMessageSent) {
           throw new Error(data?.error || `Errore dal server: ${response.status}`)
         }
 
-        const content =
-          data?.output ||
-          data?.message ||
-          data?.text ||
-          (typeof data?.raw === 'string' ? data.raw : '') ||
-          "Nessuna risposta dall'orchestratore."
+        const { content: content, contentType: contentType, raw: dataRaw } = data
 
         const assistantMessage = {
           id: uuidv4(),
           role: 'assistant',
-          content,
+          content: content,
+          contentType: contentType,
           timestamp: new Date(),
         }
 

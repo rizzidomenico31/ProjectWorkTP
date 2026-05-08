@@ -3,6 +3,7 @@ import { MessageBubble, TypingIndicator } from './MessageBubble.jsx'
 import { InputBar } from './InputBar.jsx'
 import { Menu, MessageSquare } from './Icons.jsx'
 import { useChat } from '../hooks/useChat.js'
+import MermaidDiagram from "./MermaidDiagram.jsx";
 
 const SUGGESTIONS = [
   'Come posso iniziare?',
@@ -78,9 +79,9 @@ export function ChatInterface({ sessionId, onMessageSent, onMenuClick }) {
           <EmptyState />
         ) : (
           <div className="max-w-3xl mx-auto space-y-5">
-            {messages.map((msg) => (
-              <MessageBubble key={msg.id} message={msg} />
-            ))}
+            {messages.map((msg) =>
+                <MessageBubble key={msg.id} message={msg} />
+            )}
             {isLoading && <TypingIndicator />}
             <div ref={bottomRef} />
           </div>

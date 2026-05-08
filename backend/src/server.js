@@ -38,6 +38,7 @@ const msgSchema = new mongoose.Schema(
     id: String,
     role: { type: String, enum: ['user', 'assistant', 'error'] },
     content: String,
+    contentType: {type: String, enum: ['text', 'map']},
     timestamp: Date,
     attachment: mongoose.Schema.Types.Mixed,
   },
@@ -180,6 +181,7 @@ app.post('/api/chat', upload.single('pdf'), async (req, res) => {
 
     const upstream = await fetch(N8N_WEBHOOK_URL, fetchOptions)
     const text = await upstream.text()
+    console.log(text)
 
     if (!upstream.ok) {
       console.error('[n8n error]', upstream.status, text)
@@ -193,41 +195,38 @@ app.post('/api/chat', upload.single('pdf'), async (req, res) => {
     try {
       data = JSON.parse(text)
     } catch {
-      data = { output: text }
+      data = { content: text, type: 'text' }
     }
 
-    const output =
-      (Array.isArray(data) ? data[0]?.output : data?.output) ||
-      data?.message ||
-      data?.text ||
-      data?.response ||
-      ''
+    const { content: output, type: outputType } = Array.isArray(data) ? data[0] : data;
 
     // Persist to MongoDB asynchronously (don't block the response)
     if (sessionId) {
       const now = new Date()
       persistMessages(
-        sessionId,
-        {
-          id: randomUUID(),
-          role: 'user',
-          content: chatInput.trim(),
-          timestamp: now,
-          attachment: req.file
-            ? { name: req.file.originalname, size: req.file.size, type: 'pdf' }
-            : null,
-        },
-        {
-          id: randomUUID(),
-          role: 'assistant',
-          content: output,
-          timestamp: new Date(),
-          attachment: null,
-        },
+          sessionId,
+          {
+            id: randomUUID(),
+            role: 'user',
+            content: chatInput.trim(),
+            contentType: "text",
+            timestamp: now,
+            attachment: req.file
+                ? {name: req.file.originalname, size: req.file.size, type: 'pdf'}
+                : null,
+          },
+          {
+            id: randomUUID(),
+            role: 'assistant',
+            content: output,
+            contentType: outputType,
+            timestamp: new Date(),
+            attachment: null,
+          },
       )
     }
 
-    res.json({ output, raw: data })
+    res.json({ content:output, contentType:outputType, raw: data })
   } catch (err) {
     console.error('[server error]', err)
     res.status(500).json({ error: err.message || 'Errore interno' })
