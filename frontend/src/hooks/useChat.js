@@ -62,16 +62,17 @@ export function useChat(sessionId, onMessageSent) {
         }
 
         const content =
+          data?.content ||
           data?.output ||
-          data?.message ||
-          data?.text ||
-          (typeof data?.raw === 'string' ? data.raw : '') ||
           "Nessuna risposta dall'orchestratore."
+
+        const contentType = data?.contentType || 'text'
 
         const assistantMessage = {
           id: uuidv4(),
           role: 'assistant',
           content,
+          contentType,
           timestamp: new Date(),
         }
 

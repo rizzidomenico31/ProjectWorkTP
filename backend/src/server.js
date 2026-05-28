@@ -38,6 +38,7 @@ const msgSchema = new mongoose.Schema(
     id: String,
     role: { type: String, enum: ['user', 'assistant', 'error'] },
     content: String,
+    contentType: { type: String, enum: ['text', 'map', 'quiz'], default: 'text' },
     timestamp: Date,
     attachment: mongoose.Schema.Types.Mixed,
   },
@@ -193,15 +194,19 @@ app.post('/api/chat', upload.single('pdf'), async (req, res) => {
     try {
       data = JSON.parse(text)
     } catch {
-      data = { output: text }
+      data = { content: text, type: 'text' }
     }
 
-    const output =
-      (Array.isArray(data) ? data[0]?.output : data?.output) ||
-      data?.message ||
-      data?.text ||
-      data?.response ||
-      ''
+    // n8n risponde con { type: "text"|"map"|"quiz", content: "...", questions: [...] }
+    const n8nData = Array.isArray(data) ? data[0] : data
+    const contentType = n8nData?.type || 'text'
+    let content
+
+    if (contentType === 'quiz') {
+      content = JSON.stringify(n8nData?.questions || [])
+    } else {
+      content = n8nData?.content || n8nData?.output || n8nData?.message || n8nData?.text || ''
+    }
 
     // Persist to MongoDB asynchronously (don't block the response)
     if (sessionId) {
@@ -212,6 +217,7 @@ app.post('/api/chat', upload.single('pdf'), async (req, res) => {
           id: randomUUID(),
           role: 'user',
           content: chatInput.trim(),
+          contentType: 'text',
           timestamp: now,
           attachment: req.file
             ? { name: req.file.originalname, size: req.file.size, type: 'pdf' }
@@ -220,14 +226,15 @@ app.post('/api/chat', upload.single('pdf'), async (req, res) => {
         {
           id: randomUUID(),
           role: 'assistant',
-          content: output,
+          content,
+          contentType,
           timestamp: new Date(),
           attachment: null,
         },
       )
     }
 
-    res.json({ output, raw: data })
+    res.json({ content, contentType, raw: data })
   } catch (err) {
     console.error('[server error]', err)
     res.status(500).json({ error: err.message || 'Errore interno' })

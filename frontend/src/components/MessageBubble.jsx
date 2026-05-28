@@ -1,4 +1,5 @@
 import { AlertCircle, Bot, User, FileText } from './Icons.jsx'
+import { QuizCard } from './QuizCard.jsx'
 
 function formatContent(text) {
   // Split on code blocks first
@@ -93,17 +94,23 @@ export function MessageBubble({ message }) {
     )
   }
 
+  const isQuiz = message.contentType === 'quiz'
+
   return (
     <div className="flex items-start gap-3 animate-slide-up">
       <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-poliba-lightblue to-poliba-blue flex items-center justify-center">
         <Bot className="w-4 h-4 text-white" />
       </div>
-      <div className="flex-1 min-w-0">
-        <div className="bg-gray-800/80 border border-gray-700/50 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[80%]">
-          <div className="message-content text-sm text-gray-100 leading-relaxed">
-            {formatContent(message.content)}
+      <div className={`flex-1 min-w-0 ${isQuiz ? 'max-w-xl' : ''}`}>
+        {isQuiz ? (
+          <QuizCard content={message.content} />
+        ) : (
+          <div className="bg-gray-800/80 border border-gray-700/50 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[80%]">
+            <div className="message-content text-sm text-gray-100 leading-relaxed">
+              {formatContent(message.content)}
+            </div>
           </div>
-        </div>
+        )}
         <p className="text-gray-600 text-xs mt-1 ml-1">{time}</p>
       </div>
     </div>
