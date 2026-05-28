@@ -17,5 +17,11 @@ export default function MermaidDiagram({ chart }) {
         }
     }, [chart])
 
-    return <div ref={ref} className="w-full overflow-auto p-4" />
+    return (
+        <div className="bg-gray-800/80 border border-gray-700/50 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[80%]">
+            <div className="message-content text-sm text-gray-100 leading-relaxed">
+                <div ref={ref} className="w-full overflow-auto p-4"/>
+            </div>
+        </div>
+    )
 }

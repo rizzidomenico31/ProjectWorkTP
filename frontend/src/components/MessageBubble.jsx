@@ -1,5 +1,6 @@
 import { AlertCircle, Bot, User, FileText } from './Icons.jsx'
 import MermaidDiagram from "./MermaidDiagram.jsx";
+import { QuizCard } from './QuizCard.jsx'
 
 function formatContent(text) {
   // Split on code blocks first
@@ -36,6 +37,24 @@ function formatContent(text) {
       </span>
     )
   })
+}
+
+function renderMessageContent(message) {
+    switch (message.contentType) {
+        case 'quiz':
+            return <QuizCard content={message.content} />
+        case 'map':
+            return <MermaidDiagram chart={message.content} />
+        case 'text':
+        default:
+            return (
+                <div className="bg-gray-800/80 border border-gray-700/50 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[80%]">
+                    <div className="message-content text-sm text-gray-100 leading-relaxed">
+                        {formatContent(message.content)}
+                    </div>
+                </div>
+            )
+    }
 }
 
 export function MessageBubble({ message }) {
@@ -99,15 +118,8 @@ export function MessageBubble({ message }) {
       <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-poliba-lightblue to-poliba-blue flex items-center justify-center">
         <Bot className="w-4 h-4 text-white" />
       </div>
-      <div className="flex-1 min-w-0">
-        <div className="bg-gray-800/80 border border-gray-700/50 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[80%]">
-          <div className="message-content text-sm text-gray-100 leading-relaxed">
-              {message.contentType === 'text'
-                  ? formatContent(message.content)
-                  : <MermaidDiagram chart={message.content} />
-              }
-          </div>
-        </div>
+      <div className={`flex-1 min-w-0 ${message.contentType === 'quiz' ? 'max-w-xl' : ''}`}>
+          {renderMessageContent(message)}
         <p className="text-gray-600 text-xs mt-1 ml-1">{time}</p>
       </div>
     </div>

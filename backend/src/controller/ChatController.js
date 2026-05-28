@@ -34,7 +34,13 @@ async function chatController (req, res){
             data = { content: text, type: 'text' }
         }
 
-        const { content: output, type: outputType } = Array.isArray(data) ? data[0] : data;
+        const n8nData = Array.isArray(data) ? data[0] : data
+        const outputType = n8nData?.type || 'text'
+        const output = outputType === 'quiz'
+            ? JSON.stringify(n8nData?.questions || [])
+            : n8nData?.content || ''
+
+        res.json({ content: output, contentType: outputType, raw: data })
 
         // Persist to MongoDB asynchronously (don't block the response)
         if (sessionId) {
