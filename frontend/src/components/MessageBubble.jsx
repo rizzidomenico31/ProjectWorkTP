@@ -1,6 +1,7 @@
 import { AlertCircle, Bot, User, FileText } from './Icons.jsx'
 import MermaidDiagram from "./MermaidDiagram.jsx";
 import { QuizCard } from './QuizCard.jsx'
+import {FlashCard} from "./FlashCard.jsx";
 
 function formatContent(text) {
   // Split on code blocks first
@@ -44,7 +45,13 @@ function renderMessageContent(message) {
         case 'quiz':
             return <QuizCard content={message.content} />
         case 'map':
-            return <MermaidDiagram chart={message.content} />
+            return (
+                <div>
+                    <MermaidDiagram content={message.content} />
+                </div>
+            )
+        case 'flashcard':
+            return <FlashCard content = {message.content} />
         case 'text':
         default:
             return (

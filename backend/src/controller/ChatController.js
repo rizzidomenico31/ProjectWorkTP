@@ -36,9 +36,19 @@ async function chatController (req, res){
 
         const n8nData = Array.isArray(data) ? data[0] : data
         const outputType = n8nData?.type || 'text'
-        const output = outputType === 'quiz'
-            ? JSON.stringify(n8nData?.questions || [])
-            : n8nData?.content || ''
+        let output = null
+        switch (outputType) {
+            case 'text': output = n8nData?.content
+                break
+            case 'quiz': output = JSON.stringify(n8nData?.questions)
+                break
+            case 'flashcard': output = JSON.stringify(n8nData?.contentFlashcard)
+                break
+            case 'map': output = JSON.stringify(n8nData?.contentMap)
+                break
+            default: output = JSON.stringify(n8nData?.content)
+        }
+
 
         res.json({ content: output, contentType: outputType, raw: data })
 
