@@ -3,7 +3,6 @@ import { MessageBubble, TypingIndicator } from './MessageBubble.jsx'
 import { InputBar } from './InputBar.jsx'
 import { Menu, MessageSquare } from './Icons.jsx'
 import { useChat } from '../hooks/useChat.js'
-import MermaidDiagram from "./MermaidDiagram.jsx";
 
 const SUGGESTIONS = [
   'Come posso iniziare?',
