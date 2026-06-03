@@ -2,6 +2,7 @@ import ChatSession from "../model/SessionSchema.js";
 import { randomUUID } from 'crypto'
 import fetch from 'node-fetch'
 import FormData from 'form-data'
+import {sanitizePdfBuffer} from "../util/sanitizePdf.js";
 
 async function chatController (req, res){
     const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL
@@ -14,8 +15,7 @@ async function chatController (req, res){
         if (!chatInput || !chatInput.trim()) {
             return res.status(400).json({ error: 'chatInput mancante' })
         }
-
-        const fetchOptions = getFetchOptions(req, chatInput, sessionId)
+        const fetchOptions = await getFetchOptions(req, chatInput, sessionId)
         const upstream = await fetch(N8N_WEBHOOK_URL, fetchOptions)
         const text = await upstream.text()
 
@@ -103,21 +103,22 @@ async function persistMessages(sessionId, userMsg, assistantMsg, dbStatus) {
     }
 }
 
-function getFetchOptions(req, chatInput, sessionId) {
+async function getFetchOptions(req, chatInput, sessionId) {
     if (req.file) {
+        const sanitizedPdf = await sanitizePdfBuffer(req.file.buffer)
         const form = new FormData()
         form.append('chatInput', chatInput)
         form.append('sessionId', sessionId || '')
-        form.append('pdf', req.file.buffer, {
+        form.append('pdf', sanitizedPdf, {
             filename: req.file.originalname,
             contentType: req.file.mimetype,
         })
-        return { method: 'POST', body: form, headers: form.getHeaders() }
+        return {method: 'POST', body: form, headers: form.getHeaders()}
     } else {
-        return  {
+        return {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chatInput, sessionId: sessionId || '' }),
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({chatInput, sessionId: sessionId || ''}),
         }
     }
 }
