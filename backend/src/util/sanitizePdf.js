@@ -9,12 +9,16 @@ const TMP = os.tmpdir()
 // Token che indicano contenuto attivo o potenzialmente pericoloso all'interno di
 // un PDF. La loro presenza fa rifiutare il file (fail-closed): è più sicuro
 // scartare un documento sospetto che tentare di ripulirlo parzialmente.
+//
+// NB: si bloccano le *azioni* pericolose, non i contenitori generici come
+// /OpenAction o /AA, che sono presenti anche in PDF del tutto legittimi (es.
+// per impostare la vista iniziale con una semplice azione /GoTo di navigazione).
+// Se un /OpenAction esegue codice, sarà comunque uno dei token sottostanti
+// (/JavaScript, /JS, /Launch, ...) a far scattare il blocco.
 const DANGEROUS_TOKENS = [
   '/JavaScript',
   '/JS',
   '/Launch',
-  '/OpenAction',
-  '/AA',
   '/EmbeddedFile',
   '/EmbeddedFiles',
   '/RichMedia',
