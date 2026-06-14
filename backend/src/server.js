@@ -30,8 +30,15 @@ app.use(express.json({ limit: '1mb' }))
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 20 * 1024 * 1024 },
+  limits: {
+    fileSize: 20 * 1024 * 1024, // 20 MB per il PDF
+    fieldSize: 64 * 1024, // 64 KB per i campi testuali (chatInput, sessionId)
+    fields: 5,
+    files: 1,
+  },
   fileFilter: (_req, file, cb) => {
+    // Primo filtro sul MIME dichiarato; il contenuto reale è poi validato nel
+    // controller (magic bytes) e in sanitizePdf (struttura + contenuto attivo).
     if (file.mimetype === 'application/pdf') return cb(null, true)
     cb(new Error('Solo file PDF sono consentiti'))
   },

@@ -2,7 +2,15 @@ import { useState } from "react";
 
 export function FlashCard({ content }) {
     const [flipped, setFlipped] = useState(false);
-    const flashcardContent = JSON.parse(content);
+
+    let flashcardContent;
+    try {
+        flashcardContent = typeof content === 'string' ? JSON.parse(content) : content;
+    } catch {
+        flashcardContent = null;
+    }
+
+    if (!flashcardContent || typeof flashcardContent !== 'object') return null;
 
     return (
         <div
