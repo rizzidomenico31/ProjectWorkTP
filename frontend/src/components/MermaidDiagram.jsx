@@ -3,7 +3,10 @@ import mermaid from 'mermaid'
 
 mermaid.initialize({
     startOnLoad: false,
-    theme: 'dark'
+    theme: 'dark',
+    // 'strict' fa sì che Mermaid faccia escaping dell'HTML nelle label e non
+    // esegua script: difesa contro XSS dato che l'SVG è iniettato via innerHTML.
+    securityLevel: 'strict',
 })
 
 function sanitizeMermaid(text = '') {

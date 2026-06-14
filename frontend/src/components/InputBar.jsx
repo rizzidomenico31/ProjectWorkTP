@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Send, Paperclip, FileText, X } from './Icons.jsx'
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024 // 20 MB
+const MAX_INPUT_LEN = 8000 // allineato al limite del backend
 
 export function InputBar({ onSend, isLoading }) {
   const [value, setValue] = useState('')
@@ -125,6 +126,7 @@ export function InputBar({ onSend, isLoading }) {
             value={value}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
+            maxLength={MAX_INPUT_LEN}
             placeholder={
               file
                 ? 'Aggiungi una domanda sul PDF (opzionale)…'

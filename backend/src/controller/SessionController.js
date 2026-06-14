@@ -1,4 +1,5 @@
 import ChatSession from "../model/SessionSchema.js";
+import { isValidSessionId } from "../util/validation.js";
 
 async function getSessions(_req, res) {
     try {
@@ -15,25 +16,34 @@ async function getSessions(_req, res) {
             })),
         })
     } catch (err) {
-        res.status(500).json({ error: err.message })
+        console.error('[getSessions]', err)
+        res.status(500).json({ error: 'Errore interno del server' })
     }
 }
 
 async function getMessagesForSession (req, res){
+    if (!isValidSessionId(req.params.sessionId)) {
+        return res.status(400).json({ error: 'sessionId non valido' })
+    }
     try {
         const session = await ChatSession.findOne({ sessionId: req.params.sessionId })
         res.json({ messages: session?.messages ?? [] })
     } catch (err) {
-        res.status(500).json({ error: err.message })
+        console.error('[getMessagesForSession]', err)
+        res.status(500).json({ error: 'Errore interno del server' })
     }
 }
 
 async function deleteSession (req, res){
+    if (!isValidSessionId(req.params.sessionId)) {
+        return res.status(400).json({ error: 'sessionId non valido' })
+    }
     try {
         await ChatSession.deleteOne({ sessionId: req.params.sessionId })
         res.json({ ok: true })
     } catch (err) {
-        res.status(500).json({ error: err.message })
+        console.error('[deleteSession]', err)
+        res.status(500).json({ error: 'Errore interno del server' })
     }
 }
 

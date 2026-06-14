@@ -3,6 +3,12 @@ import { randomUUID } from 'crypto'
 import fetch from 'node-fetch'
 import FormData from 'form-data'
 import {sanitizePdfBuffer} from "../util/sanitizePdf.js";
+import {
+    isValidSessionId,
+    sanitizeFilename,
+    validatePdfFile,
+    MAX_CHAT_INPUT_LEN,
+} from "../util/validation.js";
 
 async function chatController (req, res){
     const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL
@@ -12,18 +18,34 @@ async function chatController (req, res){
         }
 
         const { chatInput, sessionId } = req.body
-        if (!chatInput || !chatInput.trim()) {
+        if (typeof chatInput !== 'string' || !chatInput.trim()) {
             return res.status(400).json({ error: 'chatInput mancante' })
         }
+        if (chatInput.length > MAX_CHAT_INPUT_LEN) {
+            return res.status(400).json({
+                error: `chatInput troppo lungo (max ${MAX_CHAT_INPUT_LEN} caratteri)`,
+            })
+        }
+        // sessionId è opzionale, ma se presente deve essere un UUID valido.
+        if (sessionId && !isValidSessionId(sessionId)) {
+            return res.status(400).json({ error: 'sessionId non valido' })
+        }
+        // Il file (se presente) deve essere un PDF reale, non solo dichiarato tale.
+        if (req.file) {
+            const check = validatePdfFile(req.file)
+            if (!check.ok) {
+                return res.status(400).json({ error: check.error })
+            }
+        }
+
         const fetchOptions = await getFetchOptions(req, chatInput, sessionId)
         const upstream = await fetch(N8N_WEBHOOK_URL, fetchOptions)
         const text = await upstream.text()
 
         if (!upstream.ok) {
-            console.error('[n8n error]', upstream.status, text)
+            console.error('[n8n error]', upstream.status, text.slice(0, 500))
             return res.status(502).json({
-                error: `n8n ha risposto con ${upstream.status}`,
-                details: text.slice(0, 500),
+                error: 'Errore nel servizio di elaborazione',
             })
         }
 
@@ -64,7 +86,7 @@ async function chatController (req, res){
                     contentType: "text",
                     timestamp: now,
                     attachment: req.file
-                        ? {name: req.file.originalname, size: req.file.size, type: 'pdf'}
+                        ? {name: sanitizeFilename(req.file.originalname), size: req.file.size, type: 'pdf'}
                         : null,
                 },
                 {
@@ -77,11 +99,14 @@ async function chatController (req, res){
                 },
             )
         }
-
-        res.json({ content:output, contentType:outputType, raw: data })
     } catch (err) {
         console.error('[server error]', err)
-        res.status(500).json({ error: err.message || 'Errore interno' })
+        if (res.headersSent) return
+        // I PDF rifiutati dalla sanitizzazione sono errori dell'input dell'utente.
+        if (err.message?.includes('PDF')) {
+            return res.status(400).json({ error: err.message })
+        }
+        res.status(500).json({ error: 'Errore interno del server' })
     }
 }
 
@@ -110,8 +135,8 @@ async function getFetchOptions(req, chatInput, sessionId) {
         form.append('chatInput', chatInput)
         form.append('sessionId', sessionId || '')
         form.append('pdf', sanitizedPdf, {
-            filename: req.file.originalname,
-            contentType: req.file.mimetype,
+            filename: sanitizeFilename(req.file.originalname),
+            contentType: 'application/pdf',
         })
         return {method: 'POST', body: form, headers: form.getHeaders()}
     } else {
