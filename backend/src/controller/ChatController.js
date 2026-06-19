@@ -110,8 +110,7 @@ async function chatController (req, res){
     }
 }
 
-async function persistMessages(sessionId, userMsg, assistantMsg, dbStatus) {
-    if (!dbStatus) return
+async function persistMessages(sessionId, userMsg, assistantMsg) {
     try {
         let session = await ChatSession.findOne({ sessionId })
         if (!session) {
