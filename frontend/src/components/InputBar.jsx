@@ -4,7 +4,7 @@ import { Send, Paperclip, FileText, X } from './Icons.jsx'
 const MAX_FILE_SIZE = 20 * 1024 * 1024 // 20 MB
 const MAX_INPUT_LEN = 8000 // allineato al limite del backend
 
-export function InputBar({ onSend, isLoading }) {
+export function InputBar({ onSend, isLoading, prefill }) {
   const [value, setValue] = useState('')
   const [file, setFile] = useState(null)
   const [fileError, setFileError] = useState(null)
@@ -16,6 +16,22 @@ export function InputBar({ onSend, isLoading }) {
       textareaRef.current.focus()
     }
   }, [isLoading])
+
+  // Precompila la barra quando l'utente sceglie un suggerimento (EmptyState).
+  // `prefill` cambia ad ogni click (campo `n`), così funziona anche ripetendo la stessa scelta.
+  useEffect(() => {
+    if (!prefill?.text) return
+    setValue(prefill.text)
+    const el = textareaRef.current
+    if (!el) return
+    requestAnimationFrame(() => {
+      el.focus()
+      el.style.height = 'auto'
+      el.style.height = Math.min(el.scrollHeight, 160) + 'px'
+      const end = el.value.length
+      el.setSelectionRange(end, end)
+    })
+  }, [prefill])
 
   function autoResize() {
     const el = textareaRef.current

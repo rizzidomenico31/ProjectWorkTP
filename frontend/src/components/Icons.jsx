@@ -172,6 +172,19 @@ export function RotateCcw({ className }) {
   )
 }
 
+export function Network({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="5" r="2" />
+      <circle cx="5" cy="19" r="2" />
+      <circle cx="19" cy="19" r="2" />
+      <line x1="12" y1="7" x2="12" y2="12" />
+      <path d="M12 12l-5.5 5" />
+      <path d="M12 12l5.5 5" />
+    </svg>
+  )
+}
+
 export function LightBulb({ className }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
